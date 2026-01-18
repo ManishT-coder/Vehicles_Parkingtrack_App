@@ -9,3 +9,33 @@ val Pink80 = Color(0xFFEFB8C8)
 val Purple40 = Color(0xFF6650a4)
 val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
+
+val Orange = Color(0xFFEF5F5F)
+
+// ─────────────────────────────
+// 🔹 New useful colors
+// ─────────────────────────────
+
+// Google-style Blue
+val BluePrimary = Color(0xFF1A73E8)
+val BlueDark = Color(0xFF174EA6)
+val BlueLight = Color(0xFF3569B6)
+
+// Text colors
+val TextPrimary = Color(0xFF202124)
+val TextSecondary = Color(0xFF5F6368)
+val TextHint = Color(0xFF9AA0A6)
+
+// Border / Divider
+val BorderLight = Color(0xFFDADCE0)
+val BorderDark = Color(0xFF5F6368)
+
+// Backgrounds
+val BackgroundLight = Color(0xFFFFFFFF)
+val BackgroundGrey = Color(0xFFF8F9FA)
+val BackgroundDark = Color(0xFF121212)
+
+// Status colors
+val SuccessGreen = Color(0xFF34A853)
+val ErrorRed = Color(0xFFEA4335)
+val WarningYellow = Color(0xFFFBBC04)
