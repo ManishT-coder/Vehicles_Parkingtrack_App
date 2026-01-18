@@ -197,7 +197,7 @@ object CarparkScreen : Screen {
                 Spacer(modifier = Modifier.height(30.dp))
 
 
-                Text("I already park my car ", Modifier.clickable{navigator.push(CargoScreen)})
+                Text("I already park my Vehicles ", Modifier.clickable{navigator.push(CargoScreen)})
             }
         }
     }
