@@ -107,7 +107,7 @@ object CarparkScreen : Screen {
                         OutlinedTextField(
                             value = viewModel.OwerName,
                             onValueChange = { viewModel.OwerName = it },
-                            label = { Text("Owner Full Name") },
+                            label = { Text("Vehicle Owner Full Name") },
                             leadingIcon = { Icon(Icons.Default.Person, null, tint = BlueLight) },
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
@@ -118,7 +118,7 @@ object CarparkScreen : Screen {
                         OutlinedTextField(
                             value = viewModel.carnumber,
                             onValueChange = { viewModel.carnumber = it.uppercase() }, // Auto Uppercase for car plates
-                            label = { Text("Car Plate Number") },
+                            label = { Text("Vehicle Plate Number") },
                             leadingIcon = { Icon(Icons.Default.DirectionsCar, null, tint = BlueLight) },
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,

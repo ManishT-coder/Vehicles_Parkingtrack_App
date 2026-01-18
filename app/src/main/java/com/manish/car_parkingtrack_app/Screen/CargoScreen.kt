@@ -106,7 +106,7 @@ object CargoScreen : Screen {
                         OutlinedTextField(
                             value = viewModel.carnumber,
                             onValueChange = { viewModel.carnumber = it.uppercase() },
-                            label = { Text("Car Plate Number") },
+                            label = { Text("Vehicles Plate Number") },
                             leadingIcon = { Icon(Icons.Default.DirectionsCar, null, tint = BlueLight) },
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
@@ -213,7 +213,7 @@ object CargoScreen : Screen {
 
                                         // 2. DATA ROWS
                                         TicketRow("OWNER", viewModel.foundCar?.OwerName?.uppercase() ?: "GUEST")
-                                        TicketRow("VEHICLE ID", viewModel.carnumber)
+                                        TicketRow("VEHICLE NUMBER PLATE", viewModel.carnumber)
                                         TicketRow("PHONE", viewModel.phoneno)
                                         TicketRow("ENTRY TIME", viewModel.foundCar?.EntryTime?.format(DateTimeFormatter.ofPattern("dd MMM, hh:mm a")) ?: "--")
 
