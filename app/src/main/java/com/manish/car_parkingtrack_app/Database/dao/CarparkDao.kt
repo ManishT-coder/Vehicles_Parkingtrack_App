@@ -6,39 +6,40 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.manish.car_parkingtrack_app.Database.entity.Carpark
-import java.security.acl.Owner
-
 
 @Dao
 interface CarparkDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertUser(carpark: Carpark)
+    suspend fun saveOrUpdate(carpark: Carpark): Long
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertUsers(carpark: List<Carpark>)
+    // --- FLEXIBLE SEARCH (Senior's Suggestion) ---
+    // This allows searching using ONE string that checks both columns
+    // REQUIREMENT 1: Search by either Phone OR Car Number
+    @Query("SELECT * FROM Carpark WHERE PhoneNO = :query OR CarNumber = :query LIMIT 1")
+    suspend fun searchVehicle(query: String): Carpark?
 
-    @Query("SELECT * FROM Carpark LIMIT 1")
-    suspend fun getFirstUser(): Carpark?
+    // REQUIREMENT 2: Dashboard Statistics
+    @Query("SELECT COUNT(*) FROM Carpark")
+    suspend fun getTotalVehicles(): Int
+
+    // --- DASHBOARD DATA (Senior's Suggestion) ---
+    @Query("SELECT COUNT(*) FROM Carpark")
+    suspend fun getTotalVehicleCount(): Int
 
     @Query("SELECT * FROM Carpark")
-    suspend fun getAllUsers(): List<Carpark>
+    suspend fun getAllEntries(): List<Carpark>
 
-    @Query("SELECT * FROM Carpark WHERE PhoneNO = :Phoneno")
-    suspend fun getUserByPhoneNo(Phoneno: String): Carpark?
+    // --- OTHER UTILITIES ---
+    @Query("SELECT * FROM Carpark WHERE id = :id")
+    suspend fun getUserById(id: Int): Carpark?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun saveOrUpdate(carpark: Carpark): Long
+    @Query("SELECT COUNT(*) FROM Carpark")
+    suspend fun getTotalCars(): Int
 
     @Query("DELETE FROM Carpark")
     suspend fun deleteAll()
 
     @Delete
     suspend fun deleteUser(carpark: Carpark)
-
-    @Query("SELECT COUNT(*) FROM Carpark")
-    suspend fun getAllUserCount(): Long
-
-    @Query("SELECT * FROM  Carpark WHERE OwerName = :Owner")
-    suspend fun getuserbyName(Owner: String): Carpark
 }

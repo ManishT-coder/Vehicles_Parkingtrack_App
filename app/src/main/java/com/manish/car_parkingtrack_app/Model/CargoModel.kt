@@ -1,108 +1,221 @@
 package com.manish.car_parkingtrack_app.Model
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import com.manish.car_parkingtrack_app.Database.entity.Carpark
 import com.manish.car_parkingtrack_app.Database.service.CargoService
+import java.time.Duration
+import java.time.LocalDateTime
 
-class CargoModel(
-    private val cargoService: CargoService
-) : ViewModel() {
+/**
+ * 📝 EVOLUTION REMARKS:
+ * -------------------------------------------------------------------------
+ * PREVIOUS PATTERN (V1):
+ * - Used separate 'phoneno' and 'carnumber' inputs.
+ * - Forced the user to provide both details to find a record.
+ *
+ * NEW PROFESSIONAL PATTERN (V2 - Senior Suggestion):
+ * - Combined inputs into a single 'searchQuery'.
+ * - Added 'foundCars' List to support multiple vehicles per phone number.
+ * - Changed 'checkcar' return type to Int to handle 0, 1, or Many results.
+ * -------------------------------------------------------------------------
+ */
 
-    private val RATE_PER_TEN_MINS = 10 // 10 Rupees
+class CargoModel(private val cargoService: CargoService) : ViewModel() {
 
-    var foundCar by mutableStateOf<Carpark?>(null)
-    // UI State
+    // --- [OLD PATTERN VARIABLES - COMMENTED FOR REFERENCE] ---
+    /*
     var carnumber by mutableStateOf("")
     var phoneno by mutableStateOf("")
+
+    package com.manish.car_parkingtrack_app.Model
+
+import androidx.compose.runtime.*
+import androidx.lifecycle.ViewModel
+import com.manish.car_parkingtrack_app.Database.entity.Carpark
+import com.manish.car_parkingtrack_app.Database.service.CargoService
+import java.time.Duration
+import java.time.LocalDateTime
+
+/**
+ * 📝 EVOLUTION REMARKS:
+ * -------------------------------------------------------------------------
+ * PREVIOUS PATTERN (V1):
+ * - Used separate 'phoneno' and 'carnumber' inputs.
+ * - Forced the user to provide both details to find a record.
+ *
+ * NEW PROFESSIONAL PATTERN (V2 - Senior Suggestion):
+ * - Combined inputs into a single 'searchQuery'.
+ * - Added 'foundCars' List to support multiple vehicles per phone number.
+ * - Changed 'checkcar' return type to Int to handle 0, 1, or Many results.
+ * -------------------------------------------------------------------------
+ */
+
+class CargoModel(private val cargoService: CargoService) : ViewModel() {
+
+    // --- [OLD PATTERN VARIABLES - COMMENTED FOR REFERENCE] ---
+    /*
+    var carnumber by mutableStateOf("")
+    var phoneno by mutableStateOf("")
+    */
+
+    // --- [NEW PATTERN VARIABLES] ---
+    var searchQuery by mutableStateOf("")
+    var foundCars by mutableStateOf<List<Carpark>>(emptyList())
+    var foundCar by mutableStateOf<Carpark?>(null)
+    var showVehicleSelector by mutableStateOf(false)
+
     var isLoading by mutableStateOf(false)
-
-    // Error State
-    var carnumbererror by mutableStateOf<String?>(null)
-    var phonenoerror by mutableStateOf<String?>(null)
     var getcarerror by mutableStateOf<String?>(null)
+    var totalFare by mutableStateOf(0)
 
-    fun isValid(): Boolean {
-        var valid = true
+    private val FARE_RATE = 10
 
-        // Car Number Check
-        if (carnumber.isBlank()) {
-            carnumbererror = "Car number is required"
-            valid = false
-        } else {
-            carnumbererror = null
-        }
-
-        // Phone Number Regex Check (Exactly 10 digits)
-        val phoneRegex = "^[0-9]{10}$".toRegex()
-        if (!phoneno.matches(phoneRegex)) {
-            phonenoerror = "Must be exactly 10 digits"
-            valid = false
-        } else {
-            phonenoerror = null
-        }
-
-        return valid
+    // --- [OLD PATTERN LOGIC - COMMENTED FOR REFERENCE] ---
+    /*
+    suspend fun checkcar_OLD(): Boolean {
+        val result = cargoService.getUser(phoneno, carnumber)
+        return if (result != null) {
+            foundCar = result
+            calculateFare()
+            true
+        } else false
     }
+    */
 
-    suspend fun checkcar(): Boolean {
-        if (!isValid()) return false
+    // --- [NEW PATTERN LOGIC: Flexible Search] ---
+    suspend fun checkcar(): Int {
+        if (searchQuery.isBlank()) {
+            getcarerror = "Input Required (Phone or Plate)"
+            return 0
+        }
 
         isLoading = true
         return try {
-            val result = cargoService.getUser(phoneno, carnumber)
-            if (result != null) {
-                foundCar = result // <--- SAVE the car details here
-                getcarerror = null
-                calculateFare()
-                true
-            } else {
-                foundCar = null
-                getcarerror = "Car not found"
-                false
+            val results = cargoService.findVehicles(searchQuery.trim().uppercase())
+
+            when {
+                results.isEmpty() -> {
+                    getcarerror = "Record not found"
+                    0
+                }
+                results.size == 1 -> {
+                    foundCar = results[0]
+                    calculateFare()
+                    1
+                }
+                else -> {
+                    foundCars = results
+                    showVehicleSelector = true // UI will show the list
+                    results.size
+                }
             }
         } catch (e: Exception) {
             getcarerror = "DB Error: ${e.localizedMessage}"
-            false
+            0
         } finally {
             isLoading = false
         }
     }
-    // Optional: Update this to see minutes clearly during testing
-    fun getParkingDuration(): String {
-        val entry = foundCar?.EntryTime ?: return ""
-        val now = java.time.LocalDateTime.now()
-
-        val duration = java.time.Duration.between(entry, now)
-        val hours = duration.toHours()
-        val minutes = duration.toMinutes() % 60
-        val seconds = duration.seconds % 60 // Added seconds for testing
-
-        return if (hours > 0) "$hours hrs $minutes mins" else "$minutes mins $seconds secs"
-    }
-    var totalFare by mutableStateOf(0) // To store the calculated cost
-
-
 
     fun calculateFare() {
         val entry = foundCar?.EntryTime ?: return
-        val now = java.time.LocalDateTime.now()
-
-        val duration = java.time.Duration.between(entry, now)
-        val totalMinutes = duration.toMinutes()
-
-        // LOGIC: Every 10-minute block costs 10 rupees.
-        // We use (totalMinutes + 9) / 10 to always round up.
-        // Example:
-        // 1 min  -> (1+9)/10  = 1 block  -> 10 Rupees
-        // 10 min -> (10+9)/10 = 1 block  -> 10 Rupees
-        // 11 min -> (11+9)/10 = 2 blocks -> 20 Rupees
-
-        val blocks = if (totalMinutes < 1) 1 else (totalMinutes + 9) / 10
-
-        totalFare = (blocks * RATE_PER_TEN_MINS).toInt()
+        val totalMinutes = Duration.between(entry, LocalDateTime.now()).toMinutes()
+        val blocks = if (totalMinutes < 1) 1 else ((totalMinutes + 9) / 10)
+        totalFare = (blocks * FARE_RATE).toInt()
     }
 
+    fun getParkingDuration(): String {
+        val entry = foundCar?.EntryTime ?: return "--"
+        val duration = Duration.between(entry, LocalDateTime.now())
+        return "${duration.toHours()}h ${duration.toMinutes() % 60}m"
+    }
+
+    fun selectCar(car: Carpark) {
+        foundCar = car
+        showVehicleSelector = false
+        calculateFare()
+    }
+}
+
+
+    */
+
+    // --- [NEW PATTERN VARIABLES] ---
+    var searchQuery by mutableStateOf("")
+    var foundCars by mutableStateOf<List<Carpark>>(emptyList())
+    var foundCar by mutableStateOf<Carpark?>(null)
+    var showVehicleSelector by mutableStateOf(false)
+
+    var isLoading by mutableStateOf(false)
+    var getcarerror by mutableStateOf<String?>(null)
+    var totalFare by mutableStateOf(0)
+
+    private val FARE_RATE = 10
+
+    // --- [OLD PATTERN LOGIC - COMMENTED FOR REFERENCE] ---
+    /*
+    suspend fun checkcar_OLD(): Boolean {
+        val result = cargoService.getUser(phoneno, carnumber)
+        return if (result != null) {
+            foundCar = result
+            calculateFare()
+            true
+        } else false
+    }
+    */
+
+    // --- [NEW PATTERN LOGIC: Flexible Search] ---
+    suspend fun checkcar(): Int {
+        if (searchQuery.isBlank()) {
+            getcarerror = "Input Required (Phone or Plate)"
+            return 0
+        }
+
+        isLoading = true
+        return try {
+            val results = cargoService.findVehicles(searchQuery.trim().uppercase())
+
+            when {
+                results.isEmpty() -> {
+                    getcarerror = "Record not found"
+                    0
+                }
+                results.size == 1 -> {
+                    foundCar = results[0]
+                    calculateFare()
+                    1
+                }
+                else -> {
+                    foundCars = results
+                    showVehicleSelector = true // UI will show the list
+                    results.size
+                }
+            }
+        } catch (e: Exception) {
+            getcarerror = "DB Error: ${e.localizedMessage}"
+            0
+        } finally {
+            isLoading = false
+        }
+    }
+
+    fun calculateFare() {
+        val entry = foundCar?.EntryTime ?: return
+        val totalMinutes = Duration.between(entry, LocalDateTime.now()).toMinutes()
+        val blocks = if (totalMinutes < 1) 1 else ((totalMinutes + 9) / 10)
+        totalFare = (blocks * FARE_RATE).toInt()
+    }
+
+    fun getParkingDuration(): String {
+        val entry = foundCar?.EntryTime ?: return "--"
+        val duration = Duration.between(entry, LocalDateTime.now())
+        return "${duration.toHours()}h ${duration.toMinutes() % 60}m"
+    }
+
+    fun selectCar(car: Carpark) {
+        foundCar = car
+        showVehicleSelector = false
+        calculateFare()
+    }
 }

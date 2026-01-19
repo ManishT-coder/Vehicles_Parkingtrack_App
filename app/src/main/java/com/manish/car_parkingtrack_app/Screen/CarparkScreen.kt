@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Person
@@ -192,6 +193,15 @@ object CarparkScreen : Screen {
                     } else {
                         Text("CONFIRM PARKING", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     }
+                }
+
+                Button(
+                    onClick = { navigator.push(DashboardScreen()) },
+                    modifier = Modifier.padding(16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)
+                ) {
+                    Icon(Icons.Default.Analytics, contentDescription = null)
+                    Text(" VIEW ANALYTICS")
                 }
 
                 Spacer(modifier = Modifier.height(30.dp))

@@ -4,7 +4,7 @@ import android.content.Context
 import com.manish.car_parkingtrack_app.Database.AppDatabase
 import com.manish.car_parkingtrack_app.Database.entity.Carpark
 
-class CarparkService(context: Context){
+class CarparkService(context: Context) {
 
     private val dao = AppDatabase.getInstance(context).carparkDao()
 
@@ -12,18 +12,25 @@ class CarparkService(context: Context){
         return dao.saveOrUpdate(carpark)
     }
 
-    suspend fun getConfig(): Carpark? {
-        return dao.getFirstUser()
+    // This handles the "Phone OR Vehicle Number" search
+    suspend fun findVehicle(query: String): Carpark? {
+        return dao.searchVehicle(query)
     }
 
-    suspend fun getAllUser(): List<Carpark> {
-        return dao.getAllUsers()
+    // This provides the count for your Dashboard
+    suspend fun getTotalCount(): Int {
+        return dao.getTotalVehicleCount()
+    }
+    suspend fun getAllEntries(): List<Carpark> {
+        return dao.getAllEntries() // Calls the function we added to the Dao
     }
 
-    suspend fun getUser(phoneno: String): Carpark? {
-        return dao.getUserByPhoneNo(phoneno)
+    // This provides all data for advanced analysis
+    suspend fun getAllParkingRecords(): List<Carpark> {
+        return dao.getAllEntries()
     }
-    suspend fun getuserByname(owner: String): Carpark{
-        return dao.getuserbyName(owner)
+
+    suspend fun deleteRecord(carpark: Carpark) {
+        dao.deleteUser(carpark)
     }
 }

@@ -9,8 +9,11 @@ class CargoService(context: Context) {
     private val dao = AppDatabase.getInstance(context).cargoDao()
     private val db = AppDatabase.getInstance(context)
     private val cargoDao = db.cargoDao()
-    suspend fun getUser(phone: String, carNum: String): Carpark? {
-        return cargoDao.getUser(phone, carNum)
+    suspend fun getUser(query: String): Carpark? {
+        return cargoDao.getUser(query)
+    }
+    suspend fun findVehicles(query: String): List<Carpark> {
+        return cargoDao.findVehicles(query)
     }
 
     suspend fun getAllCarparkUsers(): List<Carpark> {
